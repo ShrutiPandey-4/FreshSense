@@ -1,0 +1,119 @@
+{
+    "model": "EfficientNetB0",
+    "test_images": 480,
+    "accuracy": 0.9729166666666667,
+    "macro_precision": 0.9746456500488758,
+    "macro_recall": 0.9729166666666667,
+    "macro_f1": 0.9717780369534125,
+    "classification_report": {
+        "FreshApple": {
+            "precision": 0.9354838709677419,
+            "recall": 0.9666666666666667,
+            "f1-score": 0.9508196721311475,
+            "support": 30.0
+        },
+        "FreshBanana": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 30.0
+        },
+        "FreshGrape": {
+            "precision": 0.967741935483871,
+            "recall": 1.0,
+            "f1-score": 0.9836065573770492,
+            "support": 30.0
+        },
+        "FreshGuava": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 30.0
+        },
+        "FreshJujube": {
+            "precision": 0.967741935483871,
+            "recall": 1.0,
+            "f1-score": 0.9836065573770492,
+            "support": 30.0
+        },
+        "FreshOrange": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 30.0
+        },
+        "FreshPomegranate": {
+            "precision": 0.9354838709677419,
+            "recall": 0.9666666666666667,
+            "f1-score": 0.9508196721311475,
+            "support": 30.0
+        },
+        "FreshStrawberry": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 30.0
+        },
+        "RottenApple": {
+            "precision": 1.0,
+            "recall": 0.7,
+            "f1-score": 0.8235294117647058,
+            "support": 30.0
+        },
+        "RottenBanana": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 30.0
+        },
+        "RottenGrape": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 30.0
+        },
+        "RottenGuava": {
+            "precision": 0.9090909090909091,
+            "recall": 1.0,
+            "f1-score": 0.9523809523809523,
+            "support": 30.0
+        },
+        "RottenJujube": {
+            "precision": 1.0,
+            "recall": 0.9666666666666667,
+            "f1-score": 0.9830508474576272,
+            "support": 30.0
+        },
+        "RottenOrange": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 30.0
+        },
+        "RottenPomegranate": {
+            "precision": 0.8787878787878788,
+            "recall": 0.9666666666666667,
+            "f1-score": 0.9206349206349206,
+            "support": 30.0
+        },
+        "RottenStrawberry": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 30.0
+        },
+        "accuracy": 0.9729166666666667,
+        "macro avg": {
+            "precision": 0.9746456500488758,
+            "recall": 0.9729166666666667,
+            "f1-score": 0.9717780369534125,
+            "support": 480.0
+        },
+        "weighted avg": {
+            "precision": 0.9746456500488758,
+            "recall": 0.9729166666666667,
+            "f1-score": 0.9717780369534125,
+            "support": 480.0
+        }
+    }
+}
