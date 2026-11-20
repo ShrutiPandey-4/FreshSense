@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FreshSense</title>
+<style>
+  :root {
+    --green: #2e7d32; --yellow: #f9a825; --red: #c62828;
+    --bg: #f5f7f5; --card: #ffffff; --text: #1b1b1b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+    background: var(--bg); color: var(--text);
+    display: flex; flex-direction: column; align-items: center; padding: 24px 16px;
+    min-height: 100vh;
+  }
+  h1 { font-size: 1.8rem; margin-bottom: 4px; }
+  p.subtitle { color: #555; margin-top: 0; text-align: center; }
+  .card {
+    background: var(--card); border-radius: 16px; padding: 24px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08); width: 100%; max-width: 420px;
+    margin-top: 16px;
+  }
+  .upload-area {
+    border: 2px dashed #bbb; border-radius: 12px; padding: 32px 16px;
+    text-align: center; cursor: pointer; transition: border-color 0.2s;
+  }
+  .upload-area:hover { border-color: var(--green); }
+  input[type=file] { display: none; }
+  button {
+    background: var(--green); color: white; border: none; padding: 12px 20px;
+    border-radius: 10px; font-size: 1rem; cursor: pointer; width: 100%; margin-top: 12px;
+  }
+  button.secondary { background: #555; }
+  button:disabled { background: #aaa; cursor: not-allowed; }
+  img#preview { max-width: 100%; border-radius: 12px; margin-top: 16px; display: none; }
+  video#camera { width: 100%; border-radius: 12px; display: none; margin-top: 12px; }
+  #result { margin-top: 20px; display: none; }
+  #downloadQualityReportBtn { margin-top: 16px; }
+  #downloadQualityReportBtn[hidden] { display: none; }
+  .score { font-size: 2.4rem; font-weight: 700; }
+  .status { font-size: 1.2rem; font-weight: 600; margin-top: 4px; }
+  .fresh { color: var(--green); }
+  .moderate { color: var(--yellow); }
+  .spoiled { color: var(--red); }
+  .details { margin-top: 14px; font-size: 0.85rem; color: #555; background: #f0f0f0;
+    border-radius: 8px; padding: 10px; }
+  .mode-badge { display: inline-block; margin-top: 10px; font-size: 0.75rem; padding: 4px 10px;
+    border-radius: 999px; background: #eee; color: #444; }
+  #errorBox { color: var(--red); margin-top: 10px; display: none; font-size: 0.9rem; }
+  #annotated { width: 100%; border-radius: 12px; margin-bottom: 12px; display: none; }
+  .msg { margin-top: 6px; font-size: 0.95rem; color: #333; line-height: 1.4; }
+  .notfruit { color: #555; }
+  .mixed { color: #d2691e; }
+  .fruit-card { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: #f6f6f6;
+    border-left: 6px solid #bbb; font-size: 0.9rem; }
+  .fruit-card.fresh { border-color: var(--green); }
+  .fruit-card.moderate { border-color: var(--yellow); }
+  .fruit-card.spoiled { border-color: var(--red); }
+  .grid-box { margin-top: 8px; }
+  .grid-box img { width: 100%; max-width: 420px; border-radius: 8px; display: block; }
+  .grid-box .gsum { font-weight: 600; font-size: 0.85rem; margin-top: 4px; }
+  .grid-box .gleg { font-size: 0.75rem; color: #555; margin-top: 2px; }
+  .fruit-card .name { font-weight: 700; font-size: 1rem; }
+  .fruit-card .meta { color: #555; margin-top: 2px; font-size: 0.8rem; }
+  .shelf { margin-top: 8px; padding: 8px 10px; border-radius: 8px; background: #fff; border: 1px solid #e3e3e3; font-size: 0.85rem; line-height: 1.4; }
+  .shelf .shelf-title { font-weight: 700; font-size: 0.95rem; }
+  .shelf.eat_today .shelf-title, .shelf.discard .shelf-title { color: var(--red); }
+  .shelf.eat_soon .shelf-title { color: #b26a00; }
+  .shelf.this_week .shelf-title, .shelf.plenty_of_time .shelf-title { color: var(--green); }
+  .shelf .shelf-tip { margin-top: 4px; color: #333; }
+  .shelf .shelf-caution { margin-top: 4px; color: #7a4b00; }
+  .shelf .shelf-note { margin-top: 4px; color: #888; font-size: 0.72rem; }
+  .fruit-card .warn { color: #7a4b00; margin-top: 4px; font-size: 0.8rem; }
+  h2 { font-size: 1.1rem; margin: 0 0 4px; }
+  p.hint { color: #666; font-size: 0.85rem; margin: 0 0 12px; }
+  label.check { display: block; margin-top: 12px; font-size: 0.9rem; color: #444; }
+  .lighting-box { display: none; margin-top: 12px; padding: 10px; border-radius: 8px; font-size: 0.85rem; }
+  .lighting-box.good { background: #e8f5e9; color: #1b5e20; }
+  .lighting-box.poor { background: #fff4e0; color: #7a4b00; }
+  .pair { display: flex; gap: 10px; }
+  .compare-card { max-width: 680px; }
+  .model-comparison { max-width: 1100px; }
+  .model-upload { display: block; border: 2px dashed #bbb; border-radius: 12px; padding: 18px;
+    text-align: center; cursor: pointer; }
+  .model-upload:hover { border-color: var(--green); }
+  #modelPreview { display: none; max-width: 100%; max-height: 260px; object-fit: contain;
+    border-radius: 10px; margin: 14px auto 0; }
+  .model-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
+  .model-card { min-width: 0; padding: 16px; border-radius: 12px; background: #f6f6f6; border-top: 4px solid #bbb; }
+  .model-card h3 { margin: 0 0 8px; }
+  .model-card p { margin: 8px 0 0; overflow-wrap: anywhere; }
+  .model-state { font-size: 0.85rem; font-weight: 700; color: #555; }
+  .model-state.success { color: var(--green); }
+  .model-state.error, .model-state.unavailable { color: var(--red); }
+  .model-state.demo { color: #8a4b08; }
+  .model-card .status { font-size: 1rem; }
+  .model-card .score { font-size: 1.4rem; }
+  #modelCompareError { display: none; color: var(--red); margin-top: 10px; }
+  .model-prediction-note { margin: 14px 0 0; color: #666; font-size: 0.85rem; line-height: 1.4; }
+  .pick { flex: 1; border: 2px dashed #bbb; border-radius: 12px; padding: 10px; text-align: center;
+    font-size: 0.9rem; cursor: pointer; }
+  .pick input { display: none; }
+  .pick img { width: 100%; border-radius: 8px; margin-top: 8px; display: none; }
+  #cmpResult { display: none; margin-top: 16px; }
+  .verdict { font-weight: 600; margin-bottom: 10px; }
+  .cmp-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .cmp-photo { min-width: 0; padding: 12px; border-radius: 10px; background: #f6f6f6; }
+  .cmp-photo h3 { margin: 0 0 8px; font-size: 1rem; }
+  .cmp-photo img { width: 100%; height: 180px; object-fit: contain; background: #eee; border-radius: 8px; }
+  .cmp-photo p { margin: 8px 0 0; font-size: 0.9rem; overflow-wrap: anywhere; }
+  .cmp-warning { display: none; margin: 10px 0; padding: 10px; border-radius: 8px; background: #fff4e0; color: #7a4b00; }
+  .cmp-note { margin: 10px 0 0; color: #666; font-size: 0.82rem; }  .err { color: var(--red); margin-top: 10px; display: none; font-size: 0.9rem; }
+  footer { margin-top: 24px; font-size: 0.75rem; color: #888; text-align: center; }
+  @media (max-width: 760px) { .model-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 520px) { .cmp-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+  <h1>🍎 FreshSense <span style="font-size:12px;font-weight:600;background:#2e7d32;color:#fff;border-radius:10px;padding:2px 8px;vertical-align:middle">v15</span></h1>
+  <p class="subtitle">Estimate fruit freshness from a photo</p>
+
+  <div class="card">
+    <div class="upload-area" id="uploadArea">
+      <p>📷 Tap to upload a photo</p>
+      <input type="file" id="fileInput" accept="image/*" />
+    </div>
+
+    <button id="cameraBtn" class="secondary">Use Camera Instead</button>
+    <video id="camera" autoplay playsinline></video>
+    <button id="captureBtn" style="display:none;">Capture Photo</button>
+    <canvas id="canvas" style="display:none;"></canvas>
+
+    <img id="preview" alt="Selected food preview" />
+
+    <label class="check"><input type="checkbox" id="normalizeChk" /> Correct lighting before analysing</label>
+    <button id="analyzeBtn" disabled>Analyze Freshness</button>
+
+    <div id="errorBox"></div>
+    <div id="result">
+      <img id="annotated" alt="Analysed photo with each object marked" />
+      <p class="cmp-note">Numbered image tags match the Fruit cards below.</p>
+      <div class="status" id="statusText">--</div>
+      <p class="cmp-note" id="detectionNote"></p>
+      <div id="fruitList"></div>
+      <button id="downloadQualityReportBtn" class="secondary" type="button" hidden>Download Quality Report</button>
+      <p class="cmp-note">Visual estimate only; not a food-safety test.</p>
+      <div class="lighting-box" id="lightingBox"></div>
+    </div>
+  </div>
+
+  <section class="card model-comparison" aria-labelledby="modelCompareHeading">
+    <h2 id="modelCompareHeading">Compare AI Models</h2>
+    <p class="hint">Upload one fruit image to compare predictions from MobileNetV2, EfficientNetB0, and ResNet50.</p>
+    <p class="model-prediction-note" id="modelDemoNote">Unavailable models are shown as unavailable; no simulated predictions or model-performance metrics are shown.</p>
+    <label class="model-upload" for="modelCompareInput">
+      Choose a fruit image
+      <input type="file" id="modelCompareInput" accept="image/png,image/jpeg,image/webp" />
+    </label>
+    <img id="modelPreview" alt="Selected image for AI model comparison" />
+    <button id="modelCompareBtn" disabled>Analyze with all models</button>
+    <div id="modelCompareError" role="alert"></div>
+    <div class="model-grid" id="modelResults" aria-live="polite">
+      <article class="model-card" data-model="MobileNetV2">
+        <h3>MobileNetV2</h3>
+        <div class="model-state">Waiting for analysis</div>
+        <p><strong>Trained model availability:</strong> <span data-field="availability">—</span></p>
+        <p><strong>Predicted fruit:</strong> <span data-field="fruit">—</span></p>
+        <p data-field="fruitSource"></p>
+        <p><strong>Fresh/Rotten prediction:</strong> <span data-field="prediction">—</span></p>
+        <p><strong data-field="scoreLabel">Freshness score:</strong> <span data-field="score">—</span></p>
+        <p data-field="scoreSource"></p>
+        <p><strong>Freshness status:</strong> <span data-field="freshness">—</span></p>
+        <p><strong>Inference time (preprocess + predict):</strong> <span data-field="inferenceTime">—</span></p>
+      </article>
+      <article class="model-card" data-model="EfficientNetB0">
+        <h3>EfficientNetB0</h3>
+        <div class="model-state">Waiting for analysis</div>
+        <p><strong>Trained model availability:</strong> <span data-field="availability">—</span></p>
+        <p><strong>Predicted fruit:</strong> <span data-field="fruit">—</span></p>
+        <p data-field="fruitSource"></p>
+        <p><strong>Fresh/Rotten prediction:</strong> <span data-field="prediction">—</span></p>
+        <p><strong data-field="scoreLabel">Freshness score:</strong> <span data-field="score">—</span></p>
+        <p data-field="scoreSource"></p>
+        <p><strong>Freshness status:</strong> <span data-field="freshness">—</span></p>
+        <p><strong>Inference time (preprocess + predict):</strong> <span data-field="inferenceTime">—</span></p>
+      </article>
+      <article class="model-card" data-model="ResNet50">
+        <h3>ResNet50</h3>
+        <div class="model-state">Waiting for analysis</div>
+        <p><strong>Trained model availability:</strong> <span data-field="availability">—</span></p>
+        <p><strong>Predicted fruit:</strong> <span data-field="fruit">—</span></p>
+        <p data-field="fruitSource"></p>
+        <p><strong>Fresh/Rotten prediction:</strong> <span data-field="prediction">—</span></p>
+        <p><strong data-field="scoreLabel">Freshness score:</strong> <span data-field="score">—</span></p>
+        <p data-field="scoreSource"></p>
+        <p><strong>Freshness status:</strong> <span data-field="freshness">—</span></p>
+        <p><strong>Inference time (preprocess + predict):</strong> <span data-field="inferenceTime">—</span></p>
+      </article>
+    </div>
+    <p class="model-prediction-note">These are model predictions and may disagree. Fresh, Moderate, and Spoiled are score-band labels; Moderate is not a trained class. Scores are experimental visual estimates, not food-safety results.</p>
+  </section>
+
+  <div class="card compare-card">
+    <h2>Compare the same fruit in two conditions</h2>
+    <p class="hint">Upload two photos of the same fruit type (for example, a banana today and the same type three days later).</p>
+    <div class="pair">
+      <label class="pick">Photo A<input type="file" id="cmpA" accept="image/*" /><img id="cmpAimg" alt="" /></label>
+      <label class="pick">Photo B<input type="file" id="cmpB" accept="image/*" /><img id="cmpBimg" alt="" /></label>
+    </div>
+    <button id="compareBtn" disabled>Compare</button>
+    <div id="cmpError" class="err"></div>
+    <div id="cmpResult">
+      <div class="verdict" id="cmpVerdict"></div>
+      <p class="verdict" id="cmpDifference"></p>
+      <div class="cmp-warning" id="cmpWarning"></div>
+      <div class="cmp-grid">
+        <section class="cmp-photo">
+          <h3>Photo A</h3><img id="cmpResultAimg" alt="Photo A being compared" />
+          <p><strong>Fruit type:</strong> <span id="cmpFoodA"></span></p>
+          <p><strong>Experimental model score:</strong> <span id="cmpScoreA"></span></p>
+          <p><strong>Predicted condition:</strong> <span id="cmpStatusA"></span></p>
+        </section>
+        <section class="cmp-photo">
+          <h3>Photo B</h3><img id="cmpResultBimg" alt="Photo B being compared" />
+          <p><strong>Fruit type:</strong> <span id="cmpFoodB"></span></p>
+          <p><strong>Experimental model score:</strong> <span id="cmpScoreB"></span></p>
+          <p><strong>Predicted condition:</strong> <span id="cmpStatusB"></span></p>
+        </section>
+      </div>
+      <p class="cmp-note">Visual estimate only; not a food-safety test.</p>
+    </div>
+  </div>
+
+  </div>
+
+  <footer>
+    FreshSense demo &middot; Backend: <code id="apiUrlDisplay"></code>
+  </footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  // Change this to your deployed backend URL if not running locally
+  const API_BASE = (location.port === "5050") ? "/api" : "http://localhost:5050/api";
+  const API_URL = API_BASE + "/analyze";
+  document.getElementById("apiUrlDisplay").textContent = API_BASE;
+
+  const uploadArea = document.getElementById("uploadArea");
+  const fileInput = document.getElementById("fileInput");
+  const preview = document.getElementById("preview");
+  const analyzeBtn = document.getElementById("analyzeBtn");
+  const cameraBtn = document.getElementById("cameraBtn");
+  const captureBtn = document.getElementById("captureBtn");
+  const video = document.getElementById("camera");
+  const canvas = document.getElementById("canvas");
+  const errorBox = document.getElementById("errorBox");
+  const resultBox = document.getElementById("result");
+  const downloadQualityReportBtn = document.getElementById("downloadQualityReportBtn");
+
+  let currentBlob = null;
+  let latestAnalysisImageData = null;
+  let currentPreviewImageDataPromise = Promise.resolve(null);
+  let stream = null;
+  let latestAnalysis = null;
+  let latestAnalysisAt = null;
+
+  uploadArea.addEventListener("click", () => fileInput.click());
+
+  function jpegDataFromBlob(blob) {
+    return new Promise((resolve) => {
+      const objectUrl = URL.createObjectURL(blob);
+      const image = new Image();
+      image.onload = () => {
+        try {
+          if (!image.naturalWidth || !image.naturalHeight) throw new Error("Image has no dimensions");
+          const imageCanvas = document.createElement("canvas");
+          imageCanvas.width = image.naturalWidth;
+          imageCanvas.height = image.naturalHeight;
+          imageCanvas.getContext("2d").drawImage(image, 0, 0);
+          resolve(imageCanvas.toDataURL("image/jpeg", 0.88));
+        } catch (error) {
+          console.warn("Could not prepare the uploaded image for the quality report:", error);
+          resolve(null);
+        } finally {
+          URL.revokeObjectURL(objectUrl);
+        }
+      };
+      image.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        resolve(null);
+      };
+      image.src = objectUrl;
+    });
+  }
+
+  fileInput.addEventListener("change", () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    currentBlob = file;
+    showPreview(file);
+  });
+
+  function showPreview(blobOrFile) {
+    const url = URL.createObjectURL(blobOrFile);
+    currentPreviewImageDataPromise = jpegDataFromBlob(blobOrFile);
+    preview.src = url;
+    preview.style.display = "block";
+    analyzeBtn.disabled = false;
+    resultBox.style.display = "none";
+    downloadQualityReportBtn.hidden = true;
+    latestAnalysis = null;
+    latestAnalysisImage = null;
+    latestAnalysisImageData = null;
+    latestAnalysisAt = null;
+    errorBox.style.display = "none";
+  }
+
+  cameraBtn.addEventListener("click", async () => {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      video.srcObject = stream;
+      video.style.display = "block";
+      captureBtn.style.display = "block";
+      cameraBtn.style.display = "none";
+      uploadArea.style.display = "none";
+    } catch (err) {
+      errorBox.textContent = "Camera access denied or unavailable: " + err.message;
+      errorBox.style.display = "block";
+    }
+  });
+
+  captureBtn.addEventListener("click", () => {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext("2d").drawImage(video, 0, 0);
+    canvas.toBlob((blob) => {
+      currentBlob = blob;
+      showPreview(blob);
+      // stop camera stream
+      stream.getTracks().forEach((t) => t.stop());
+      video.style.display = "none";
+      captureBtn.style.display = "none";
+      cameraBtn.style.display = "block";
+      uploadArea.style.display = "block";
+    }, "image/jpeg");
+  });
+
+  analyzeBtn.addEventListener("click", async () => {
+    if (!currentBlob) return;
+    const imageForAnalysis = currentBlob;
+    const previewImageDataPromise = currentPreviewImageDataPromise;
+    analyzeBtn.disabled = true;
+    analyzeBtn.textContent = "Analyzing...";
+    errorBox.style.display = "none";
+    downloadQualityReportBtn.hidden = true;
+    latestAnalysis = null;
+    latestAnalysisImageData = null;
+    latestAnalysisAt = null;
+
+    const formData = new FormData();
+    formData.append("image", imageForAnalysis, "photo.jpg");
+    if (document.getElementById("normalizeChk").checked) formData.append("normalize", "1");
+
+    try {
+      const res = await fetch(API_URL, { method: "POST", body: formData });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || "Analysis failed");
+
+      renderResult(data, await previewImageDataPromise);
+    } catch (err) {
+      errorBox.textContent = "Error: " + err.message + " (Is the backend running at " + API_URL + "?)";
+      errorBox.style.display = "block";
+    } finally {
+      analyzeBtn.disabled = false;
+      analyzeBtn.textContent = "Analyze Freshness";
+    }
+  });
+
+  function esc(t) {
+    return String(t).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+  function cls(status) {
+    return status === "Fresh" ? "fresh" : status === "Moderate" ? "moderate" : "spoiled";
+  }
+  function word(status) {
+    return status === "Fresh" ? "fresh" : status === "Moderate" ? "moderate" : "spoiled / not fresh";
+  }
+
+  // "How soon will it spoil?" box shown inside each fruit card
+  function shelfHtml(sl) {
+    if (!sl) return "";
+    // One line: the freshness life worked out from the freshness score (at room temperature).
+    return '<div class="shelf ' + esc(sl.urgency) + '">' +
+      '<div class="shelf-title">🕒 Freshness life: ' + esc(sl.freshness_life || sl.urgency_label) + "</div>" +
+      (sl.caution ? '<div class="shelf-note">⚠ ' + esc(sl.caution) + "</div>" : "") + "</div>";
+  }
+
+  function gridHtml(g) {
+    if (!g || !g.image) return "";
+    return '<div class="grid-box"><img src="' + g.image + '" alt="Grid showing which squares look rotten" />' +
+      '<div class="gsum">🔲 ' + esc(g.summary) + "</div>" +
+      '<div class="gleg">🟥 rotten &nbsp; 🟨 unsure &nbsp; 🟩 fresh &nbsp; (rough guide)</div></div>';
+  }
+
+  function reportFruits(data) {
+    if (Array.isArray(data.fruits)) {
+      return data.fruits.filter((fruit) => fruit && typeof fruit === "object");
+    }
+    if (data.is_fruit !== false &&
+        ((typeof data.food === "string" && data.food.trim() && data.food.toLowerCase() !== "not a fruit") ||
+         (typeof data.freshness_score === "number" && Number.isFinite(data.freshness_score)))) {
+      return [data];
+    }
+    return [];
+  }
+
+  function createQualityReport(data, analyzedAt, sourceImageData) {
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+      throw new Error("The PDF library did not load. Check your internet connection and reload the page.");
+    }
+
+    const fruits = reportFruits(data);
+    if (!fruits.length) throw new Error("There are no fruit results to include in a report.");
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 17;
+    const contentWidth = pageWidth - margin * 2;
+    const bottom = pageHeight - 18;
+    let y = 39;
+
+    function drawHeader() {
+      pdf.setFillColor(46, 125, 50);
+      pdf.rect(0, 0, pageWidth, 29, "F");
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(19);
+      pdf.text("FreshSense", margin, 13);
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(11);
+      pdf.text("Fruit Quality Report", margin, 22);
+      pdf.setTextColor(35, 45, 37);
+    }
+
+    function ensureSpace(height) {
+      if (y + height > bottom) {
+        pdf.addPage();
+        drawHeader();
+        y = 39;
+      }
+    }
+
+    function drawWrapped(text, x, width, fontSize, lineHeight) {
+      pdf.setFontSize(fontSize);
+      const lines = pdf.splitTextToSize(String(text), width);
+      lines.forEach((line) => {
+        ensureSpace(lineHeight);
+        pdf.text(line, x, y);
+        y += lineHeight;
+      });
+    }
+
+    drawHeader();
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(11);
+    pdf.text("Analysis date and time", margin, y);
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(10);
+    pdf.text(analyzedAt.toLocaleString(), margin, y + 6);
+    y += 14;
+
+    const explanation = typeof data.summary === "string" && data.summary.trim()
+      ? data.summary.trim()
+      : typeof data.message === "string" && data.message.trim()
+        ? data.message.trim()
+        : fruits.length > 1
+          ? "Each fruit is reported separately; the analysis did not provide an overall summary."
+          : "The score and status below are the visual analysis results for this image.";
+    if (fruits.length > 1 && (data.summary || data.message)) {
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(11);
+      pdf.text("Overall summary", margin, y);
+    } else {
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(11);
+      pdf.text("Result explanation", margin, y);
+    }
+    y += 6;
+    drawWrapped(explanation, margin, contentWidth, 10, 5);
+    y += 3;
+
+    let reportImage = null;
+    if (typeof data.annotated_image === "string" && data.annotated_image) {
+      try {
+        const imageProperties = pdf.getImageProperties(data.annotated_image);
+        reportImage = {
+          data: data.annotated_image,
+          width: imageProperties.width,
+          height: imageProperties.height,
+          label: "Annotated analysis image",
+        };
+      } catch (error) {
+        console.warn("Could not add the annotated report image:", error);
+      }
+    }
+    if (!reportImage && sourceImageData) {
+      try {
+        const imageProperties = pdf.getImageProperties(sourceImageData);
+        reportImage = {
+          data: sourceImageData,
+          width: imageProperties.width,
+          height: imageProperties.height,
+          label: "Uploaded fruit image",
+        };
+      } catch (error) {
+        console.warn("Could not add the uploaded report image:", error);
+      }
+    }
+
+    if (reportImage) {
+      const boxHeight = 62;
+      ensureSpace(boxHeight + 8);
+      pdf.setFillColor(246, 249, 246);
+      pdf.setDrawColor(220, 228, 220);
+      pdf.roundedRect(margin, y, contentWidth, boxHeight, 2, 2, "FD");
+      const maxWidth = contentWidth - 10;
+      const maxHeight = boxHeight - 13;
+      const scale = Math.min(maxWidth / reportImage.width, maxHeight / reportImage.height);
+      const imageWidth = reportImage.width * scale;
+      const imageHeight = reportImage.height * scale;
+      pdf.addImage(
+        reportImage.data,
+        "JPEG",
+        margin + (contentWidth - imageWidth) / 2,
+        y + 3,
+        imageWidth,
+        imageHeight,
+        undefined,
+        "FAST",
+      );
+      pdf.setTextColor(90, 100, 90);
+      pdf.setFontSize(8);
+      pdf.text(reportImage.label, margin + 4, y + boxHeight - 3);
+      pdf.setTextColor(35, 45, 37);
+      y += boxHeight + 7;
+    } else {
+      drawWrapped("Image unavailable for this report.", margin, contentWidth, 9, 5);
+    }
+
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(12);
+    ensureSpace(10);
+    pdf.text(fruits.length === 1 ? "Fruit result" : "Individual fruit results", margin, y);
+    y += 7;
+
+    fruits.forEach((fruit, index) => {
+      const name = typeof fruit.food === "string" && fruit.food.trim()
+        ? fruit.food.trim()
+        : "Not available";
+      const score = typeof fruit.freshness_score === "number" && Number.isFinite(fruit.freshness_score)
+        ? fruit.freshness_score + "/100"
+        : "Not available";
+      const status = typeof fruit.status === "string" && fruit.status.trim()
+        ? fruit.status.trim()
+        : "Not available";
+      const confidence = typeof fruit.detector_confidence === "number" &&
+        Number.isFinite(fruit.detector_confidence) &&
+        fruit.detector_confidence >= 0 && fruit.detector_confidence <= 1
+        ? (fruit.detector_confidence * 100).toFixed(1) + "%"
+        : null;
+      const nameLines = pdf.splitTextToSize(
+        "Fruit " + (fruit.id != null ? fruit.id : index + 1) + " - " + name,
+        contentWidth - 10,
+      );
+      const details = [
+        "Freshness score: " + score,
+        "Freshness status: " + status,
+      ];
+      if (confidence !== null) details.push("Detection confidence: " + confidence);
+      const cardHeight = 9 + nameLines.length * 5 + details.length * 5;
+      ensureSpace(cardHeight + 4);
+
+      const statusLower = status.toLowerCase();
+      const border = statusLower === "fresh" ? [46, 125, 50]
+        : statusLower === "moderate" ? [249, 168, 37] : [198, 40, 40];
+      pdf.setFillColor(248, 249, 248);
+      pdf.setDrawColor(border[0], border[1], border[2]);
+      pdf.roundedRect(margin, y, contentWidth, cardHeight, 2, 2, "FD");
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(11);
+      pdf.text(nameLines, margin + 5, y + 6);
+      let detailY = y + 6 + nameLines.length * 5;
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(9);
+      details.forEach((detail) => {
+        pdf.text(detail, margin + 5, detailY);
+        detailY += 5;
+      });
+      y += cardHeight + 4;
+    });
+
+    const disclaimer = "This report provides an experimental visual estimate of fruit freshness. " +
+      "It is not a food-safety test or a guarantee that the fruit is safe to consume.";
+    ensureSpace(18);
+    pdf.setDrawColor(220, 228, 220);
+    pdf.line(margin, y, pageWidth - margin, y);
+    y += 6;
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(9);
+    pdf.text("Disclaimer", margin, y);
+    y += 5;
+    drawWrapped(disclaimer, margin, contentWidth, 8, 4);
+
+    const pageCount = pdf.getNumberOfPages();
+    for (let page = 1; page <= pageCount; page += 1) {
+      pdf.setPage(page);
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(8);
+      pdf.setTextColor(110, 120, 110);
+      pdf.text("FreshSense - experimental visual estimate", margin, pageHeight - 8);
+      pdf.text("Page " + page + " of " + pageCount, pageWidth - margin, pageHeight - 8, { align: "right" });
+    }
+
+    const fileStamp = analyzedAt.toISOString().replace(/[:.]/g, "-");
+    pdf.save("FreshSense-Fruit-Quality-Report-" + fileStamp + ".pdf");
+  }
+
+  downloadQualityReportBtn.addEventListener("click", () => {
+    if (!latestAnalysis || !latestAnalysisAt) return;
+    downloadQualityReportBtn.disabled = true;
+    downloadQualityReportBtn.textContent = "Generating report...";
+    errorBox.style.display = "none";
+    try {
+      createQualityReport(latestAnalysis, latestAnalysisAt, latestAnalysisImageData);
+    } catch (error) {
+      console.error("Could not generate the FreshSense quality report:", error);
+      errorBox.textContent = "Could not generate the PDF report: " + error.message;
+      errorBox.style.display = "block";
+    } finally {
+      downloadQualityReportBtn.disabled = false;
+      downloadQualityReportBtn.textContent = "Download Quality Report";
+    }
+  });
+
+  function renderResult(data, imageDataForAnalysis) {
+    latestAnalysis = data;
+    latestAnalysisImageData = imageDataForAnalysis || null;
+    latestAnalysisAt = new Date();
+    downloadQualityReportBtn.hidden = reportFruits(data).length === 0;
+    const statusText = document.getElementById("statusText");
+    const fruitList = document.getElementById("fruitList");
+    const detectionNote = document.getElementById("detectionNote");
+    const lightingBox = document.getElementById("lightingBox");
+    const annotated = document.getElementById("annotated");
+
+    // The photo with every fruit (or non-fruit object) marked
+    if (data.annotated_image) {
+      annotated.src = data.annotated_image;
+      annotated.style.display = "block";
+    }
+
+    if (data.detection_source === "yolo11n_coco_detector") {
+      detectionNote.textContent = "";
+    } else if (data.detection_source === "opencv_contour_fallback") {
+      detectionNote.textContent = "YOLO did not return supported boxes; the contour-based fallback was used. " +
+        "It may merge touching fruit or include background.";
+    } else if (data.mode === "fallback_heuristic") {
+      detectionNote.textContent = "Whole-image visual heuristic fallback; fruit type was not identified.";
+    } else {
+      detectionNote.textContent = "";
+    }
+
+    // Headline
+    if (data.analysis_blocked === "too_dark") {
+      statusText.className = "status notfruit";
+      statusText.textContent = "🌑 Too dark to analyse";
+      detectionNote.textContent = data.message;
+    } else if (data.is_fruit === false && data.dark_photo) {
+      statusText.className = "status notfruit";
+      statusText.textContent = "🌑 No fruit found - the photo is very dark";
+      detectionNote.textContent = data.message;
+    } else if (data.is_fruit === false) {
+      statusText.className = "status notfruit";
+      statusText.textContent = "⚪ This is not a fruit";
+    } else if (data.overall === "mixed") {
+      statusText.className = "status mixed";
+      statusText.textContent = "🟠 Mixed visual score bands - " + data.fruit_count + " fruits";
+    } else if (data.fruit_count > 1) {
+      statusText.className = "status " + cls(data.fruits[0].status);
+      statusText.textContent = data.fruits[0].status_icon + " " + data.fruit_count + " fruits - all in the " + word(data.fruits[0].status) + " score band";
+    } else {
+      const f = data.fruits[0];
+      statusText.className = "status " + cls(f.status);
+      statusText.textContent = f.status_icon + " " + f.status;
+    }
+
+    // Show only the requested fruit, score, and condition.
+    fruitList.innerHTML = "";
+    data.fruits.forEach((f) => {
+      fruitList.insertAdjacentHTML("beforeend",
+        '<div class="fruit-card ' + cls(f.status) + '">' +
+        '<div class="name">Fruit ' + esc(String(f.id)) + " — " + esc(f.food) + "</div>" +
+        '<div class="meta">Experimental model score: ' + esc(String(f.freshness_score)) + "/100</div>" +
+        '<div class="meta">Predicted condition: ' + esc(f.status_icon + " " + f.status) + "</div>" +
+        (f.detection_note ? '<div class="meta">Note: ' + esc(f.detection_note) + "</div>" : "") +
+        (f.identification_warning ? '<div class="warn">' + esc(f.identification_warning) + "</div>" : "") +
+        (f.classifier_food_prediction ? '<div class="meta">Classifier top fruit label: ' +
+          esc(f.classifier_food_prediction) + "</div>" : "") +
+        shelfHtml(f.shelf_life) +
+        gridHtml(f.rot_grid) +
+        "</div>");
+    });
+    // Lighting report
+    if (data.lighting) {
+      const L = data.lighting;
+      lightingBox.className = "lighting-box " + L.quality;
+      lightingBox.innerHTML = "💡 Lighting: <b>" + L.quality + "</b> (brightness " + L.brightness +
+        ", contrast " + L.contrast + ")" +
+        (L.warnings.length ? "<br>• " + L.warnings.map(esc).join("<br>• ") : "");
+      lightingBox.style.display = "block";
+    }
+
+    resultBox.style.display = "block";
+  }
+
+  // ---------- Compare two photos of the same fruit ----------
+  const cmpA = document.getElementById("cmpA");
+  const cmpB = document.getElementById("cmpB");
+  const compareBtn = document.getElementById("compareBtn");
+  const cmpError = document.getElementById("cmpError");
+  const cmpResult = document.getElementById("cmpResult");
+  const cmpPreviewUrls = {};
+
+  function bindPick(input, imgId) {
+    input.addEventListener("change", () => {
+      const f = input.files[0];
+      if (f) {
+        const img = document.getElementById(imgId);
+        if (cmpPreviewUrls[imgId]) URL.revokeObjectURL(cmpPreviewUrls[imgId]);
+        cmpPreviewUrls[imgId] = URL.createObjectURL(f);
+        img.src = cmpPreviewUrls[imgId];
+        img.style.display = "block";
+        cmpResult.style.display = "none";
+        cmpError.style.display = "none";
+      }
+      compareBtn.disabled = !(cmpA.files[0] && cmpB.files[0]);
+    });
+  }
+  bindPick(cmpA, "cmpAimg");
+  bindPick(cmpB, "cmpBimg");
+
+  compareBtn.addEventListener("click", async () => {
+    compareBtn.disabled = true;
+    compareBtn.textContent = "Comparing...";
+    cmpError.style.display = "none";
+    const fd = new FormData();
+    fd.append("image_a", cmpA.files[0]);
+    fd.append("image_b", cmpB.files[0]);
+    if (document.getElementById("normalizeChk").checked) fd.append("normalize", "1");
+    try {
+      const res = await fetch(API_BASE + "/compare", { method: "POST", body: fd });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(d.error || "Comparison failed");
+      if (!d.photo_a || !d.photo_b) throw new Error("The server returned an incomplete comparison. Please try again.");
+      const a = d.photo_a, b = d.photo_b;
+      const summaryA = d.photo_a_summary || a;
+      const summaryB = d.photo_b_summary || b;
+      document.getElementById("cmpVerdict").textContent = d.verdict;
+      document.getElementById("cmpResultAimg").src = cmpPreviewUrls.cmpAimg;
+      document.getElementById("cmpResultBimg").src = cmpPreviewUrls.cmpBimg;
+      document.getElementById("cmpFoodA").textContent = summaryA.food || "Not identified";
+      document.getElementById("cmpFoodB").textContent = summaryB.food || "Not identified";
+      document.getElementById("cmpScoreA").textContent = summaryA.freshness_score == null ? "Unavailable" : summaryA.freshness_score + "/100";
+      document.getElementById("cmpScoreB").textContent = summaryB.freshness_score == null ? "Unavailable" : summaryB.freshness_score + "/100";
+      document.getElementById("cmpStatusA").textContent = [summaryA.status_icon, summaryA.status].filter(Boolean).join(" ") || "Unavailable";
+      document.getElementById("cmpStatusB").textContent = [summaryB.status_icon, summaryB.status].filter(Boolean).join(" ") || "Unavailable";
+      const difference = d.score_difference_b_minus_a;
+      const differenceText = document.getElementById("cmpDifference");
+      if (difference == null) {
+        differenceText.textContent = "A score difference is unavailable because both photos need a freshness score.";
+      } else if (d.higher_freshness === "tie" || difference === 0) {
+        differenceText.textContent = "Score difference (Photo B minus Photo A): 0 points. Both received the same score.";
+      } else {
+        const higherPhoto = d.higher_freshness || (difference > 0 ? "B" : "A");
+        differenceText.textContent = `Photo ${higherPhoto} received the higher score by ${Math.abs(difference).toFixed(1)} points (Photo B minus Photo A: ${difference > 0 ? "+" : ""}${difference.toFixed(1)}).`;
+      }
+      const identificationWarnings = [
+        summaryA.identification_warning ? "Photo A: " + summaryA.identification_warning : "",
+        summaryB.identification_warning ? "Photo B: " + summaryB.identification_warning : ""
+      ].filter(Boolean);
+      const warningMessages = [d.warning, ...identificationWarnings].filter(Boolean);
+      const warning = document.getElementById("cmpWarning");
+      warning.textContent = warningMessages.join(" ");
+      warning.style.display = warningMessages.length ? "block" : "none";
+      cmpResult.style.display = "block";
+    } catch (err) {
+      cmpError.textContent = "Error: " + err.message;
+      cmpError.style.display = "block";
+    } finally {
+      compareBtn.disabled = !(cmpA.files[0] && cmpB.files[0]);
+      compareBtn.textContent = "Compare";
+    }
+  });
+
+  // ---------- Compare all available fruit classifiers on one image ----------
+  const modelCompareInput = document.getElementById("modelCompareInput");
+  const modelCompareBtn = document.getElementById("modelCompareBtn");
+  const modelCompareError = document.getElementById("modelCompareError");
+  const modelPreview = document.getElementById("modelPreview");
+  let modelPreviewUrl = null;
+
+  function updateModelCard(card, result) {
+    const state = card.querySelector(".model-state");
+    state.className = "model-state " + (result.state || "");
+    state.textContent = result.state === "success" ? "Available — real model prediction" :
+      result.state === "unavailable" ? "Model not available" :
+      result.state === "error" ? "Error" :
+      result.state === "loading" ? "Loading..." : "Waiting for analysis";
+    card.querySelector('[data-field="availability"]').textContent =
+      result.availability || (result.state === "success" ? "Available" :
+        result.state === "unavailable" ? "Unavailable" :
+          result.state === "error" ? "Error" : "—");
+    card.querySelector('[data-field="fruit"]').textContent = result.predicted_fruit || "Unavailable";
+    card.querySelector('[data-field="fruitSource"]').textContent = result.predicted_fruit_source || "";
+    card.querySelector('[data-field="prediction"]').textContent = result.prediction || "Unavailable";
+    card.querySelector('[data-field="score"]').textContent =
+      result.freshness_score == null ? "Unavailable" : result.freshness_score + "/100";
+    card.querySelector('[data-field="scoreLabel"]').textContent = "Freshness score:";
+    card.querySelector('[data-field="scoreSource"]').textContent = result.freshness_score_source || "";
+    const freshness = result.freshness_status === "Spoiled / Not Fresh" ? "Spoiled" : result.freshness_status;
+    card.querySelector('[data-field="freshness"]').textContent = freshness || "Unavailable";
+    card.querySelector('[data-field="inferenceTime"]').textContent =
+      result.inference_time_ms == null
+        ? (result.state === "loading" || result.state === "waiting" ? "—" : "Unavailable")
+        : result.inference_time_ms + " ms";
+    card.title = result.message || "";
+  }
+
+  modelCompareInput.addEventListener("change", () => {
+    const file = modelCompareInput.files[0];
+    if (!file) return;
+    if (modelPreviewUrl) URL.revokeObjectURL(modelPreviewUrl);
+    modelPreviewUrl = URL.createObjectURL(file);
+    modelPreview.src = modelPreviewUrl;
+    modelPreview.style.display = "block";
+    modelCompareBtn.disabled = false;
+    modelCompareError.style.display = "none";
+    document.querySelectorAll(".model-card").forEach((card) =>
+      updateModelCard(card, { state: "waiting" }));
+  });
+
+  modelCompareBtn.addEventListener("click", async () => {
+    const file = modelCompareInput.files[0];
+    if (!file) return;
+    modelCompareBtn.disabled = true;
+    modelCompareBtn.textContent = "Analyzing models...";
+    modelCompareError.style.display = "none";
+    document.querySelectorAll(".model-card").forEach((card) =>
+      updateModelCard(card, { state: "loading" }));
+
+    const formData = new FormData();
+    formData.append("image", file, file.name);
+    if (document.getElementById("normalizeChk").checked) formData.append("normalize", "1");
+    try {
+      const response = await fetch(API_BASE + "/compare-models", { method: "POST", body: formData });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const detail = data.error || (response.status === 404
+          ? "Restart the backend so the comparison endpoint is loaded."
+          : "Check the backend logs for the comparison error.");
+        throw new Error("Comparison request failed (HTTP " + response.status + "). " + detail);
+      }
+      if (!Array.isArray(data.models)) throw new Error("The server returned an incomplete model comparison.");
+      data.models.forEach((result) => {
+        const card = Array.from(document.querySelectorAll(".model-card"))
+          .find((item) => item.dataset.model === result.model_name);
+        if (card) updateModelCard(card, result);
+      });
+    } catch (err) {
+      document.querySelectorAll(".model-card").forEach((card) =>
+        updateModelCard(card, { state: "error", message: err.message }));
+      modelCompareError.textContent = "Error: " + err.message;
+      modelCompareError.style.display = "block";
+    } finally {
+      modelCompareBtn.disabled = !modelCompareInput.files[0];
+      modelCompareBtn.textContent = "Analyze with all models";
+    }
+  });
+</script>
+</body>
+</html>
