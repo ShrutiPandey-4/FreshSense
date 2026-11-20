@@ -1,0 +1,75 @@
+{
+  "classes": [
+    {
+      "fruit": "apple",
+      "condition": "fresh"
+    },
+    {
+      "fruit": "apple",
+      "condition": "rotten"
+    },
+    {
+      "fruit": "banana",
+      "condition": "fresh"
+    },
+    {
+      "fruit": "banana",
+      "condition": "rotten"
+    },
+    {
+      "fruit": "grape",
+      "condition": "fresh"
+    },
+    {
+      "fruit": "grape",
+      "condition": "rotten"
+    },
+    {
+      "fruit": "guava",
+      "condition": "fresh"
+    },
+    {
+      "fruit": "guava",
+      "condition": "rotten"
+    },
+    {
+      "fruit": "jujube",
+      "condition": "fresh"
+    },
+    {
+      "fruit": "jujube",
+      "condition": "rotten"
+    },
+    {
+      "fruit": "orange",
+      "condition": "fresh"
+    },
+    {
+      "fruit": "orange",
+      "condition": "rotten"
+    },
+    {
+      "fruit": "pomegranate",
+      "condition": "fresh"
+    },
+    {
+      "fruit": "pomegranate",
+      "condition": "rotten"
+    },
+    {
+      "fruit": "strawberry",
+      "condition": "fresh"
+    },
+    {
+      "fruit": "strawberry",
+      "condition": "rotten"
+    }
+  ],
+  "image_size": [
+    224,
+    224
+  ],
+  "task": "fruit_and_condition",
+  "model": "MobileNetV2, frozen backbone",
+  "input": "RGB pixels 0..255"
+}
