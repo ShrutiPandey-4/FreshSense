@@ -1,0 +1,13 @@
+Flask==3.0.3
+flask-cors==4.0.1
+opencv-python==4.10.0.84
+numpy==1.26.4
+Pillow==10.4.0
+tensorflow==2.17.0
+
+# CPU-only pretrained object detector (YOLO11n COCO weights are stored at
+# backend/model/yolo11n.pt; they are separate from fruit_condition.keras).
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.14.1+cpu
+torchvision==0.29.1+cpu
+ultralytics==8.3.0
